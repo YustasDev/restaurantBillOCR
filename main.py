@@ -45,8 +45,8 @@ def find_lightest_rows(img, threshold):
 
     for y in range(img.height):
         for x in range(img.width):
-            line_luminances[y] += img.getpixel((x, y))[0]     # for BGR/RGB etc.
-            #line_luminances[y] += img.getpixel((x, y))
+            #line_luminances[y] += img.getpixel((x, y))[0]     # for BGR/RGB etc.
+            line_luminances[y] += img.getpixel((x, y))
 
     line_luminances = [x for x in enumerate(line_luminances)]
     line_luminances.sort(key=lambda x: -x[1])
@@ -152,13 +152,40 @@ if __name__ == '__main__':
     input_file = './Images/bill_02.jpg'
     correctedFile = perspective_transformation(input_file)
     image_withLighting_correction = lighting_correction(correctedFile)
-    #img = cv2.imread(image_withLighting_correction, cv2.IMREAD_GRAYSCALE)
-    #ret, img_binary = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
 
-    threshold = 0.9
-    img = Image.open(image_withLighting_correction)
-    result_rows = find_lightest_rows(img, threshold)
-    print(result_rows)
+
+
+    img = cv2.imread(image_withLighting_correction, cv2.IMREAD_GRAYSCALE)
+    ret, img_binary = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+    cv2.imwrite('bill_02_gray.jpg', img_binary)
+    imageGray = Image.open('bill_02_gray.jpg')
+
+
+    threshold = 0.915
+    #img = Image.open(image_withLighting_correction)
+    result_rows = find_lightest_rows(imageGray, threshold)
+    sorted_rows = sorted(result_rows)
+    print(sorted_rows)
+
+
+
+
+
+
+    max_column = 841
+    resultImage = cv2.imread('bill_02_gray.jpg')
+    #imgWithLines = cv2.imread(image_withLighting_correction)
+    #resultImage = cv2.cvtColor(imgWithLines, cv2.COLOR_BGR2RGB)
+    for row in sorted_rows:
+        start_point = (0, row)
+        end_point = (max_column, row)
+        cv2.line(resultImage, start_point, end_point, (0, 0, 255), thickness=1)
+
+    cv2.imshow('Result', resultImage)
+    cv2.waitKey()
+
+
+
 
 
 
