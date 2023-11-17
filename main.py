@@ -45,8 +45,8 @@ def find_lightest_rows(img, threshold):
 
     for y in range(img.height):
         for x in range(img.width):
-            #line_luminances[y] += img.getpixel((x, y))[0]     # for BGR/RGB etc.
-            line_luminances[y] += img.getpixel((x, y))
+            line_luminances[y] += img.getpixel((x, y))[0]     # for BGR/RGB etc.
+            #line_luminances[y] += img.getpixel((x, y))
 
     line_luminances = [x for x in enumerate(line_luminances)]
     line_luminances.sort(key=lambda x: -x[1])
@@ -93,9 +93,74 @@ def correct_rotate(input_file):
     cv2.imshow("Image", img)
     cv2.imwrite('bill_02_rotate.jpg', img)
 
+def perspective_transformation(input_file):
+
+    img = cv2.imread(input_file)
+    rows, cols, ch = img.shape
+    pts1 = np.float32([[60, 10], [787, 21], [54, 1104], [841, 1077]])
+    pts2 = np.float32([[0, 0], [841, 0], [0, 1104], [841, 1104]])
+
+    M = cv2.getPerspectiveTransform(pts1, pts2)
+    dst = cv2.warpPerspective(img, M, (850, 1105))
+
+    correctedFile = 'correctedImg.jpg'
+    cv2.imwrite(correctedFile, dst)
+    cv2.imshow('corrected', dst)
+    return correctedFile
+
+def lighting_correction(input_file):
+    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # clahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(8, 8))
+    # img = clahe.apply(gray)
+    # cv2.imwrite(f"{target_path}.test.jpg", img)
+
+
+    img = cv2.imread(input_file)
+    # gray scale image
+    RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    R, G, B = cv2.split(RGB)
+
+    # Create a CLAHE object: The image is divided into small block 8x8 which they are equalized as usual.
+    clahe = cv2.createCLAHE(
+        clipLimit=0.1, tileGridSize=(8, 8))  # clipLimit=2.5
+
+    # Applying this method to each channel of the color image
+    output_2R = clahe.apply(R)
+    output_2G = clahe.apply(G)
+    output_2B = clahe.apply(B)
+
+    # mergin each channel back to one
+    img_output = cv2.merge((output_2R, output_2G, output_2B))
+
+    # coverting image from RGB to Grayscale
+    # eq = cv2.cvtColor(img_output, cv2.COLOR_BGR2GRAY)
+
+    # Using image thresholding to classify pixels as dark or light
+    # This method provides changes in illumination and the contrast of the image is improved.
+    # gauss = cv2.adaptiveThreshold(
+    #     eq, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 17, 45)  # 11, 2
+
+    output_path = 'Img_WithLighting_correction.jpg'
+    cv2.imwrite(output_path, img_output)
+
+    return output_path
+
 
 
 if __name__ == '__main__':
+
+    input_file = './Images/bill_02.jpg'
+    correctedFile = perspective_transformation(input_file)
+    image_withLighting_correction = lighting_correction(correctedFile)
+    #img = cv2.imread(image_withLighting_correction, cv2.IMREAD_GRAYSCALE)
+    #ret, img_binary = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+
+    threshold = 0.9
+    img = Image.open(image_withLighting_correction)
+    result_rows = find_lightest_rows(img, threshold)
+    print(result_rows)
+
+
 
     # image = cv2.imread('bill_02.jpg')
     # #img_large = cv2.resize(image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
@@ -123,7 +188,7 @@ if __name__ == '__main__':
     # cv2.imshow('corrected', corrected)
     # cv2.waitKey()
 
-
+    """
     reader = easyocr.Reader(['ru', 'en'], gpu=False)
     #result = reader.readtext('bill_02.jpg', detail=0)
 
@@ -162,7 +227,7 @@ if __name__ == '__main__':
         cv2.imshow("Image", image)
         cv2.waitKey(0)
         print(result)
-
+    """
 
     # print(pytesseract.image_to_string(Image.open('bill_02.jpg'), lang='rus'))
     #
