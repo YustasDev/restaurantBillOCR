@@ -105,7 +105,7 @@ def perspective_transformation(input_file):
 
     correctedFile = 'correctedImg.jpg'
     cv2.imwrite(correctedFile, dst)
-    cv2.imshow('corrected', dst)
+    #cv2.imshow('corrected', dst)
     return correctedFile
 
 def lighting_correction(input_file):
@@ -167,16 +167,24 @@ if __name__ == '__main__':
     sorted_rows = sorted(result_rows)
     print(sorted_rows)
 
+    separatingLines = []
+    referenceNum = 0
+    separatingLines.append(referenceNum)
+    for separatingLine in sorted_rows:
+        if(separatingLine > (referenceNum + 5)):
+            separatingLines.append(separatingLine)
+        referenceNum = separatingLine
 
-
-
+    print('separatingLines: ')
+    print(separatingLines)
 
 
     max_column = 841
     resultImage = cv2.imread('bill_02_gray.jpg')
     #imgWithLines = cv2.imread(image_withLighting_correction)
     #resultImage = cv2.cvtColor(imgWithLines, cv2.COLOR_BGR2RGB)
-    for row in sorted_rows:
+    #for row in sorted_rows:
+    for row in separatingLines:
         start_point = (0, row)
         end_point = (max_column, row)
         cv2.line(resultImage, start_point, end_point, (0, 0, 255), thickness=1)
